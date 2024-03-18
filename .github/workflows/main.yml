@@ -18,4 +18,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       # You can test your matrix by printing the current Python version
       - name: Generate PDF
-        run: python ./build/osb.py
+        run: python ./.build/osb.py
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf
+          path: |
+            output.pdf
