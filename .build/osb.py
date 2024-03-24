@@ -1,5 +1,5 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY
@@ -14,6 +14,12 @@ doc = SimpleDocTemplate('output.pdf', pagesize=letter)
 # Create a list of flowable objects (Paragraphs)
 styles = getSampleStyleSheet()
 flowables = []
+
+leading = 24
+
+# Note: if wanting to double spaced or something... two spacers would be needed (paragraph I think uses spacers for it's line spacing)
+blank_line = Spacer(1, 12)  # 1 inch wide, 12 points tall
+#blank_line = Spacer(1, leading)
 
 # Open the text file
 last_line = None
@@ -32,11 +38,54 @@ with open('book.txt', 'r', encoding="utf-8") as file:
     #     last_line = line
 
     #paragraph_style = styles['BodyText']
-    paragraph_style = ParagraphStyle('BodyText', alignment=TA_JUSTIFY, leading=24)
+    paragraph_style = ParagraphStyle('BodyText', alignment=TA_JUSTIFY, leading=leading)
+
+    prev_line = None
+
+    count = 1
+
+    debug = False
+    # debug = True
+
+
+
+    paragraph = None
     for line in file.readlines():
-        flowable = Paragraph(line, paragraph_style)
-        #flowable = DoubleSpacedObject(flowable)
+        if debug:
+            if count > 3:
+                break
+            print(f"{count}> ------ ")
+            print(f"{count}> LINE: '{line}'")
+            print(f"{count}> PARA: '{paragraph}'")
+
+        if paragraph is None:
+            paragraph = line + "\n"
+        else:
+            paragraph = paragraph + line + "\n"
+
+        #paragraph = paragraph + "\n"
+
+        if line == "\n":
+            if prev_line == "\n":
+                #print(f"({count}) SPACER 2")
+                pass
+            else:
+                #print(f"({count}) SPACER")
+                pass
+            flowable = blank_line
+        else:
+            flowable = Paragraph(paragraph, paragraph_style)
+
         flowables.append(flowable)
+        paragraph = None
+
+        prev_line = line
+        count = count + 1
+
+    if paragraph:
+        flowable = Paragraph(paragraph, paragraph_style)
+        flowables.append(flowable)
+
 
 #if text:
 #    flowables.append(Paragraph("\n".join(text), styles['BodyText']))
