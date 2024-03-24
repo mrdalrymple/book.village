@@ -1,3 +1,1 @@
-#fpdf
-#fpdf2
 reportlab

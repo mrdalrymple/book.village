@@ -6,10 +6,13 @@ from reportlab.lib.enums import TA_JUSTIFY
 #from reportlab.lib.units import inch
 
 
+INPUT_FILENAME = "book.txt"
+OUTPUT_FILENAME = "book.pdf"
+
 #def way_one(file)
 
 # Create a PDF document
-doc = SimpleDocTemplate('output.pdf', pagesize=letter)
+doc = SimpleDocTemplate(OUTPUT_FILENAME, pagesize=letter)
 
 # Create a list of flowable objects (Paragraphs)
 styles = getSampleStyleSheet()
