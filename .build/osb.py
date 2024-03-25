@@ -1,8 +1,8 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_JUSTIFY
+from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_LEFT
 #from reportlab.lib.units import inch
 
 
@@ -18,7 +18,8 @@ doc = SimpleDocTemplate(OUTPUT_FILENAME, pagesize=letter)
 styles = getSampleStyleSheet()
 flowables = []
 
-leading = 24
+leading_double_space = 24
+leading_single_space = 12
 
 # Note: if wanting to double spaced or something... two spacers would be needed (paragraph I think uses spacers for it's line spacing)
 blank_line = Spacer(1, 12)  # 1 inch wide, 12 points tall
@@ -26,34 +27,20 @@ blank_line = Spacer(1, 12)  # 1 inch wide, 12 points tall
 
 # Open the text file
 last_line = None
-with open('book.txt', 'r', encoding="utf-8") as file:
-    #text = file.read()
-    text = []
-    current_paragraph = None
-    # for line in file.readlines():
-    #     if last_line is None:
-    #         text = []
-    #     elif last_line == "\n":
-    #         flowables.append(Paragraph("\n".join(text), styles['BodyText']))
-    #         text = []
-
-    #     text.append(line)
-    #     last_line = line
-
-    #paragraph_style = styles['BodyText']
-    paragraph_style = ParagraphStyle('BodyText', alignment=TA_JUSTIFY, leading=leading)
+with open(INPUT_FILENAME, 'r', encoding="utf-8") as file:
+    title_style = ParagraphStyle('BodyText', alignment=TA_RIGHT, leading=leading_single_space)
+    paragraph_style = ParagraphStyle('BodyText', alignment=TA_JUSTIFY, leading=leading_double_space)
 
     prev_line = None
-
     count = 1
-
     debug = False
     # debug = True
-
-
-
+    selected_style = paragraph_style
     paragraph = None
+
+
     for line in file.readlines():
+        flowable = None
         if debug:
             if count > 3:
                 break
@@ -61,25 +48,32 @@ with open('book.txt', 'r', encoding="utf-8") as file:
             print(f"{count}> LINE: '{line}'")
             print(f"{count}> PARA: '{paragraph}'")
 
+
+
+
         if paragraph is None:
             paragraph = line + "\n"
         else:
             paragraph = paragraph + line + "\n"
 
         #paragraph = paragraph + "\n"
-
-        if line == "\n":
-            if prev_line == "\n":
-                #print(f"({count}) SPACER 2")
-                pass
-            else:
-                #print(f"({count}) SPACER")
-                pass
+        stripped_line = line.strip().lower()
+        if stripped_line == "[title]":
+            selected_style = title_style
+        elif stripped_line == "[paragraph]":
+            selected_style = paragraph_style
+        elif stripped_line == "{pagebreak}":
+            flowable = PageBreak()
+            pass
+        elif line == "\n":
             flowable = blank_line
+            pass
         else:
-            flowable = Paragraph(paragraph, paragraph_style)
+            flowable = Paragraph(paragraph, selected_style)
 
-        flowables.append(flowable)
+        if flowable:
+            flowables.append(flowable)
+
         paragraph = None
 
         prev_line = line
@@ -89,11 +83,6 @@ with open('book.txt', 'r', encoding="utf-8") as file:
         flowable = Paragraph(paragraph, paragraph_style)
         flowables.append(flowable)
 
-
-#if text:
-#    flowables.append(Paragraph("\n".join(text), styles['BodyText']))
-
-#flowables.append(Paragraph(text, styles['BodyText']))
 
 # Build the PDF
 doc.multiBuild(flowables)
